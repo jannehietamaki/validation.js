@@ -29,8 +29,8 @@ $(function() {
   // Validation -> Validation -> (String -> Bool) -> Validation
   Rx.Observable.prototype.ValidWhile = function(other, predicate) {
     return this.CombineLatest(other, function(v1, v2) { return [v1, v2] })
-               .Select(function(vs) { if (predicate(vs[1])) return [] 
-                                      else return vs[0] })    
+               .Select(function(vs) { if (predicate(vs[1])) return []
+                                      else return vs[0] })
   }
 })
 
@@ -125,8 +125,8 @@ function mkValidation(observable, validator) {
 // Observable String -> String -> (Validation, Observable a, Observable a)
 function mkServerValidation(observable, url) {
   var responseValidator = function(resp) {
-    if (resp.data == undefined || resp.data.success) return [] 
-    else return resp.data.error       
+    if (resp.data == undefined || resp.data.success) return []
+    else return resp.data.error
   }
   var validation = function(value) {
     if ($.trim(value) == "") return Rx.Observable.Return([])
@@ -141,10 +141,13 @@ function mkServerValidation(observable, url) {
 
 // JQuery -> [String] -> Observable String
 function eventSourceFor(selector, events) {
-  var initialValue = currentValue(selector)
-  var changes = selector.toObservable(events.toString().replace(/,/g, " "))
-    .Select(function(event) { return currentValue(selector) })
-  return changes.Merge(Rx.Observable.Return(initialValue)).DistinctUntilChanged()
+  return combine($(selector).map(function(index, item) {
+    var me = $(item)
+    var initialValue = currentValue(me)
+    var changes = me.toObservable(events.toString().replace(/,/g, " "))
+      .Select(function(event) { return currentValue(me) })
+    return changes.Merge(Rx.Observable.Return(initialValue)).DistinctUntilChanged()
+  }))
 }
 
 // JQuery -> String
